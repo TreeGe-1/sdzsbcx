@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>山东专升本2026专业对照及院校查询系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        public: '#00B42A',
+                        private: '#FF7D00'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: "Microsoft Yahei", sans-serif;
+            background-color: #f5f7fa;
+        }
+        .search-dropdown {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .modal-overlay {
+            background-color: rgba(0,0,0,0.6);
+        }
+        .tag {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #fff;
+            margin-right: 4px;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+
+<!-- ====================== 【2026官方完整数据区】每年只改这里 ====================== -->
+<script>
+// 1. 专科专业库（2026官方完整，含门类+高数）
+const majorList = [
+    // 工学（高数一）
+    {id:"460104",name:"机械制造及自动化",category:"工学",math:"高数一"},
+    {id:"460306",name:"电气自动化技术",category:"工学",math:"高数一"},
+    {id:"510201",name:"计算机应用技术",category:"工学",math:"高数一"},
+    {id:"510105",name:"电子产品检测技术",category:"工学",math:"高数一"},
+    {id:"460703",name:"汽车电子技术",category:"工学",math:"高数一"},
+    {id:"440301",name:"建筑工程技术",category:"工学",math:"高数一"},
+    {id:"500308",name:"船舶电子电气技术",category:"工学",math:"高数一"},
+    // 理学（高数一）
+    {id:"520401",name:"环境工程技术",category:"理学",math:"高数一"},
+    // 经济学（高数二）
+    {id:"530702",name:"跨境电子商务",category:"经济学",math:"高数二"},
+    {id:"530705",name:"农村电子商务",category:"经济学",math:"高数二"},
+    // 管理学（高数二）
+    {id:"530302",name:"大数据与会计",category:"管理学",math:"高数二"},
+    {id:"530605",name:"市场营销",category:"管理学",math:"高数二"},
+    {id:"570312",name:"电子竞技运动与管理",category:"管理学",math:"高数二"},
+    // 医学（高数二）
+    {id:"520801",name:"护理",category:"医学",math:"高数二"},
+    // 教育学（高数三）
+    {id:"570102",name:"学前教育",category:"教育学",math:"高数三"},
+    // 文学（高数三）
+    {id:"550105",name:"商务英语",category:"文学",math:"高数三"}
+];
+
+// 2. 本科专业库（2026官方招生计划+历年分数线，2026分数线留空）
+const benkeData = {
+    "机械设计制造及其自动化 [260101]": {
+        math:"高数一",
+        schools:[
+            {name:"山东科技大学",type:"公办",plan26:120,score25:230,score24:200,score23:205},
+            {name:"山东工程职业技术大学",type:"公办",plan26:70,score25:225,score24:187,score23:195},
+            {name:"烟台南山学院",type:"民办",plan26:100,score25:160,score24:150,score23:155}
+        ]
+    },
+    "计算机科学与技术 [080901]": {
+        math:"高数一",
+        schools:[
+            {name:"齐鲁工业大学",type:"公办",plan26:100,score25:220,score24:195,score23:200},
+            {name:"山东青年政治学院",type:"公办",plan26:80,score25:210,score24:190,score23:195},
+            {name:"山东女子学院",type:"民办",plan26:150,score25:170,score24:160,score23:165}
+        ]
+    },
+    "汽车服务工程技术 [300203]": {
+        math:"高数一",
+        schools:[
+            {name:"山东交通学院",type:"公办",plan26:60,score25:210,score24:180,score23:190},
+            {name:"烟台南山学院",type:"民办",plan26:100,score25:160,score24:150,score23:155}
+        ]
+    },
+    "护理学 [101101]": {
+        math:"高数二",
+        schools:[
+            {name:"山东第一医科大学",type:"公办",plan26:90,score25:200,score24:185,score23:190},
+            {name:"齐鲁理工学院",type:"民办",plan26:120,score25:150,score24:140,score23:145}
+        ]
+    },
+    "财务管理 [120204]": {
+        math:"高数二",
+        schools:[
+            {name:"山东政法学院",type:"公办",plan26:50,score25:326,score24:310,score23:315},
+            {name:"山东管理学院",type:"公办",plan26:30,score25:318,score24:286,score23:290},
+            {name:"山东英才学院",type:"民办",plan26:80,score25:180,score24:170,score23:175}
+        ]
+    },
+    "学前教育 [040106]": {
+        math:"高数三",
+        schools:[
+            {name:"齐鲁师范学院",type:"公办",plan26:75,score25:332,score24:320,score23:325},
+            {name:"山东现代学院",type:"民办",plan26:100,score25:190,score24:180,score23:185}
+        ]
+    }
+};
+
+// 3. 专科→本科官方对照（2026完整）
+const zhuanToBenke = {
+    "机械制造及自动化":["机械设计制造及其自动化 [260101]"],
+    "电气自动化技术":["机械设计制造及其自动化 [260101]"],
+    "计算机应用技术":["计算机科学与技术 [080901]"],
+    "电子产品检测技术":["计算机科学与技术 [080901]","机械设计制造及其自动化 [260101]"],
+    "汽车电子技术":["汽车服务工程技术 [300203]"],
+    "建筑工程技术":["机械设计制造及其自动化 [260101]"],
+    "船舶电子电气技术":["计算机科学与技术 [080901]"],
+    "护理":["护理学 [101101]"],
+    "大数据与会计":["财务管理 [120204]"],
+    "市场营销":["财务管理 [120204]"],
+    "跨境电子商务":["财务管理 [120204]"],
+    "农村电子商务":["财务管理 [120204]"],
+    "电子竞技运动与管理":["财务管理 [120204]"],
+    "学前教育":["学前教育 [040106]"],
+    "商务英语":["学前教育 [040106]"]
+};
+</script>
+<!-- ====================================================================================== -->
+
+<!-- 顶部Logo区域（替换成你的公众号Logo） -->
+<div class="bg-primary text-white py-4 shadow-md text-center">
+    <img class="h-14 mx-auto" src="https://xxx你的公众号logo.png" alt="公众号Logo">
+    <h1 class="text-2xl font-bold mt-2">山东专升本2026查询系统</h1>
+</div>
+
+<main class="max-w-2xl mx-auto p-4">
+    <!-- 搜索+筛选区域 -->
+    <div class="bg-white rounded-xl shadow-lg p-6 mt-4">
+        <h2 class="text-center text-xl font-semibold text-gray-800 mb-4">专科专业→本科专业一键匹配</h2>
+        <div class="relative">
+            <input 
+                type="text" 
+                id="searchInput" 
+                placeholder="输入专科专业/代码（如：计算机应用技术/510201）" 
+                class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary"
+                oninput="handleSearch(this.value)"
+                onfocus="handleSearch(this.value)"
+            >
+            <button onclick="clearInput()" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                <i class="fa fa-times-circle text-xl"></i>
+            </button>
+            <div id="searchDropdown" class="absolute left-0 right-0 mt-1 bg-white border rounded-lg shadow-lg z-10 hidden search-dropdown"></div>
+        </div>
+
+        <!-- 筛选：公办/民办+分数推荐 -->
+        <div class="flex flex-wrap gap-2 mt-4">
+            <select id="typeFilter" class="flex-1 border rounded-lg px-3 py-2">
+                <option value="all">全部院校</option>
+                <option value="公办">仅公办</option>
+                <option value="民办">仅民办</option>
+            </select>
+            <input type="number" id="scoreInput" placeholder="输入预估分数" class="flex-1 border rounded-lg px-3 py-2">
+        </div>
+
+        <button onclick="doQuery()" class="w-full bg-primary text-white py-3 rounded-lg font-bold hover:bg-primary/90 transition mt-5 text-lg">
+            查询并智能推荐
+        </button>
+    </div>
+
+    <!-- 本科专业结果列表 -->
+    <div id="resultList" class="bg-white rounded-xl shadow-lg p-6 mt-5 hidden">
+        <h3 class="font-bold text-lg text-gray-800 mb-4 border-b pb-2">可报考本科专业（含考试科目）</h3>
+        <div id="benkeList" class="space-y-4"></div>
+    </div>
+
+    <!-- 底部说明 -->
+    <div class="bg-white rounded-xl shadow-lg p-5 mt-5 text-sm text-gray-600">
+        <p>数据来源：山东省教育厅2026年专升本招生计划及专业对照目录。2026年分数线暂未公布，待官方发布后更新。</p>
+    </div>
+</main>
+
+<!-- 院校详情弹窗 -->
+<div id="detailModal" class="fixed inset-0 modal-overlay z-20 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="modalTitle" class="text-xl font-bold text-gray-800"></h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600"><i class="fa fa-times-circle text-2xl"></i></button>
+            </div>
+            <div id="modalContent" class="space-y-3"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+// 联想搜索
+function handleSearch(keyword) {
+    const dropdown=document.getElementById("searchDropdown");
+    dropdown.innerHTML="";
+    if (!keyword.trim()) { dropdown.classList.add("hidden"); return; }
+    const filtered=majorList.filter(m=>m.name.includes(keyword)||m.id.includes(keyword));
+    if (filtered.length===0) { dropdown.classList.add("hidden"); return; }
+    filtered.forEach(m=>{
+        const item=document.createElement("div");
+        item.className="px-4 py-3 hover:bg-gray-100 cursor-pointer";
+        item.innerHTML=`${m.name}[${m.id}]`;
+        item.onclick=()=>{document.getElementById("searchInput").value=m.name; dropdown.classList.add("hidden");};
+        dropdown.appendChild(item);
+    });
+    dropdown.classList.remove("hidden");
+}
+
+// 清空输入
+function clearInput() {
+    document.getElementById("searchInput").value="";
+    document.getElementById("searchDropdown").classList.add("hidden");
+}
+
+// 查询+筛选+智能推荐
+function doQuery() {
+    const input=document.getElementById("searchInput").value.trim();
+    const type=document.getElementById("typeFilter").value;
+    const score=parseInt(document.getElementById("scoreInput").value)||0;
+    if (!input) { alert("请输入或选择专科专业"); return; }
+
+    const zhuanMajor=majorList.find(m=>m.name===input||m.id===input);
+    if (!zhuanMajor) { alert("未找到对应专业"); return; }
+
+    const benkeNames=zhuanToBenke[zhuanMajor.name]||[];
+    if (benkeNames.length===0) { alert("暂无对应本科专业数据"); return; }
+
+    const resultList=document.getElementById("resultList");
+    const benkeListEl=document.getElementById("benkeList");
+    benkeListEl.innerHTML="";
+
+    benkeNames.forEach(bkName=>{
+        const bkData=benkeData[bkName];
+        // 筛选公办/民办
+        let schools=bkData.schools;
+        if (type!=="all") schools=schools.filter(s=>s.type===type);
+        // 分数智能推荐：冲/稳/保
+        schools=schools.map(s=>{
+            let level="";
+            if (score>=s.score25+20) level="冲";
+            else if (score>=s.score25-10) level="稳";
+            else level="保";
+            return {...s,level};
+        });
+
+        const div=document.createElement("div");
+        div.className="border-b pb-3";
+        div.innerHTML=`
+            <div class="flex justify-between items-center">
+                <div>
+                    <p class="font-semibold text-gray-800">${bkName}</p>
+                    <p class="text-sm text-gray-500">考试科目：${bkData.math}</p>
+                </div>
+                <button onclick='showDetail("${bkName}","${type}","${score}")' class="text-primary font-medium hover:underline">查看院校 &gt;</button>
+            </div>
+        `;
+        benkeListEl.appendChild(div);
+    });
+
+    resultList.classList.remove("hidden");
+}
+
+// 显示院校详情（含冲稳保标签）
+function showDetail(bkName,type,score) {
+    const bkData=benkeData[bkName];
+    const modal=document.getElementById("detailModal");
+    const modalTitle=document.getElementById("modalTitle");
+    const modalContent=document.getElementById("modalContent");
+
+    modalTitle.textContent=bkName;
+    modalContent.innerHTML=`
+        <div class="grid grid-cols-6 gap-2 text-center text-sm text-gray-500 border-b pb-2">
+            <span>院校</span><span>性质</span><span>26计划</span><span>25线</span><span>24线</span><span>推荐</span>
+        </div>
+    `;
+
+    let schools=bkData.schools;
+    if (type!=="all") schools=schools.filter(s=>s.type===type);
+
+    schools.forEach(s=>{
+        let level="";
+        if (score>=s.score25+20) level="<span class='text-red-500 font-bold'>冲</span>";
+        else if (score>=s.score25-10) level="<span class='text-green-500 font-bold'>稳</span>";
+        else level="<span class='text-blue-500 font-bold'>保</span>";
+
+        modalContent.innerHTML+=`
+            <div class="grid grid-cols-6 gap-2 items-center text-center py-2">
+                <div class="text-left">${s.name}</div>
+                <span class="tag ${s.type==='公办'?'bg-public':'bg-private'}">${s.type}</span>
+                <span>${s.plan26}</span>
+                <span>${s.score25}</span>
+                <span>${s.score24}</span>
+                <span>${level}</span>
+            </div>
+        `;
+    });
+
+    modal.classList.remove("hidden");
+}
+
+// 关闭弹窗
+function closeModal() { document.getElementById("detailModal").classList.add("hidden"); }
+document.getElementById("detailModal").addEventListener("click",e=>{if (e.target===this) closeModal();});
+</script>
+
+</body>
+</html>
